@@ -68,29 +68,20 @@ function createPreloadingMiddleware( preloadedData ) {
  * @return {Promise<any>} Promise with the response.
  */
 function prepareResponse( responseData, parse ) {
-	/**
-	 * The Header object is created and encoded to ensure ASCII characters.
-	 */
-	const headers = new Headers(
-		Object.fromEntries(
-			Object.entries( responseData.headers ).map( ( [ key, value ] ) => {
-				if ( key.toLowerCase() === 'link' ) {
-					return [
-						key,
-						value.replace(
-							/<([^>]+)>/,
-							(
-								/** @type {any} */ _,
-								/** @type {string} */ url
-							) => `<${ encodeURI( url ) }>`
-						),
-					];
-				}
-
-				return [ key, String( value ) ];
-			} )
-		)
-	);
+	if (
+		typeof responseData.headers === 'object' &&
+		responseData.headers !== null
+	) {
+		Object.entries( responseData.headers ).forEach( ( [ key, value ] ) => {
+			if ( key.toLowerCase() === 'link' ) {
+				responseData.headers[ key ] = value.replace(
+					/<([^>]+)>/,
+					( /** @type {any} */ _, /** @type {string} */ url ) =>
+						`<${ encodeURI( url ) }>`
+				);
+			}
+		} );
+	}
 
 	return Promise.resolve(
 		parse
@@ -98,7 +89,7 @@ function prepareResponse( responseData, parse ) {
 			: new window.Response( JSON.stringify( responseData.body ), {
 					status: 200,
 					statusText: 'OK',
-					headers,
+					headers: responseData.headers,
 			  } )
 	);
 }
