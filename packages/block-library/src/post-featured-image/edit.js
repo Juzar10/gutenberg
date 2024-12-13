@@ -11,11 +11,12 @@ import { useEntityProp, store as coreStore } from '@wordpress/core-data';
 import { useSelect, useDispatch } from '@wordpress/data';
 import {
 	ToggleControl,
-	PanelBody,
 	Placeholder,
 	Button,
 	Spinner,
 	TextControl,
+	__experimentalToolsPanel as ToolsPanel,
+	__experimentalToolsPanelItem as ToolsPanelItem,
 } from '@wordpress/components';
 import {
 	InspectorControls,
@@ -201,45 +202,83 @@ export default function PostFeaturedImageEdit( {
 				/>
 			</InspectorControls>
 			<InspectorControls>
-				<PanelBody title={ __( 'Settings' ) }>
-					<ToggleControl
-						__nextHasNoMarginBottom
-						label={
-							postType?.labels.singular_name
-								? sprintf(
-										// translators: %s: Name of the post type e.g: "post".
-										__( 'Link to %s' ),
-										postType.labels.singular_name
-								  )
-								: __( 'Link to post' )
-						}
-						onChange={ () => setAttributes( { isLink: ! isLink } ) }
-						checked={ isLink }
-					/>
+				<ToolsPanel
+					label={ __( 'Settings' ) }
+					resetAll={ () => {
+						setAttributes( {
+							isLink: true,
+							linkTarget: '_self',
+							rel: '',
+						} );
+					} }
+				>
+					<ToolsPanelItem
+						label={ __( 'Link to post' ) }
+						isShownByDefault
+						hasValue={ () => ! isLink }
+						onDeselect={ () => setAttributes( { isLink: true } ) }
+					>
+						<ToggleControl
+							__nextHasNoMarginBottom
+							label={
+								postType?.labels.singular_name
+									? sprintf(
+											// translators: %s: Name of the post type e.g: "post".
+											__( 'Link to %s' ),
+											postType.labels.singular_name
+									  )
+									: __( 'Link to post' )
+							}
+							onChange={ () =>
+								setAttributes( { isLink: ! isLink } )
+							}
+							checked={ isLink }
+						/>
+					</ToolsPanelItem>
 					{ isLink && (
 						<>
-							<ToggleControl
-								__nextHasNoMarginBottom
+							<ToolsPanelItem
 								label={ __( 'Open in new tab' ) }
-								onChange={ ( value ) =>
-									setAttributes( {
-										linkTarget: value ? '_blank' : '_self',
-									} )
+								isShownByDefault
+								hasValue={ () => linkTarget === '_blank' }
+								onDeselect={ () =>
+									setAttributes( { linkTarget: '_self' } )
 								}
-								checked={ linkTarget === '_blank' }
-							/>
-							<TextControl
-								__next40pxDefaultSize
-								__nextHasNoMarginBottom
+							>
+								<ToggleControl
+									__nextHasNoMarginBottom
+									label={ __( 'Open in new tab' ) }
+									onChange={ ( value ) =>
+										setAttributes( {
+											linkTarget: value
+												? '_blank'
+												: '_self',
+										} )
+									}
+									checked={ linkTarget === '_blank' }
+								/>
+							</ToolsPanelItem>
+							<ToolsPanelItem
 								label={ __( 'Link rel' ) }
-								value={ rel }
-								onChange={ ( newRel ) =>
-									setAttributes( { rel: newRel } )
+								isShownByDefault
+								hasValue={ () => !! rel }
+								onDeselect={ () =>
+									setAttributes( { rel: '' } )
 								}
-							/>
+							>
+								<TextControl
+									__nextHasNoMarginBottom
+									__next40pxDefaultSize
+									label={ __( 'Link rel' ) }
+									value={ rel }
+									onChange={ ( newRel ) =>
+										setAttributes( { rel: newRel } )
+									}
+								/>
+							</ToolsPanelItem>
 						</>
 					) }
-				</PanelBody>
+				</ToolsPanel>
 			</InspectorControls>
 		</>
 	);
