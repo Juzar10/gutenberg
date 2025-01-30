@@ -68,10 +68,19 @@ function createPreloadingMiddleware( preloadedData ) {
  * @return {Promise<any>} Promise with the response.
  */
 function prepareResponse( responseData, parse ) {
-	if (
-		typeof responseData.headers === 'object' &&
-		responseData.headers !== null
-	) {
+	if ( parse ) {
+		return Promise.resolve( responseData.body );
+	}
+
+	try {
+		return Promise.resolve(
+			new window.Response( JSON.stringify( responseData.body ), {
+				status: 200,
+				statusText: 'OK',
+				headers: responseData.headers,
+			} )
+		);
+	} catch {
 		Object.entries( responseData.headers ).forEach( ( [ key, value ] ) => {
 			if ( key.toLowerCase() === 'link' ) {
 				responseData.headers[ key ] = value.replace(
@@ -81,17 +90,17 @@ function prepareResponse( responseData, parse ) {
 				);
 			}
 		} );
-	}
 
-	return Promise.resolve(
-		parse
-			? responseData.body
-			: new window.Response( JSON.stringify( responseData.body ), {
-					status: 200,
-					statusText: 'OK',
-					headers: responseData.headers,
-			  } )
-	);
+		return Promise.resolve(
+			parse
+				? responseData.body
+				: new window.Response( JSON.stringify( responseData.body ), {
+						status: 200,
+						statusText: 'OK',
+						headers: responseData.headers,
+				  } )
+		);
+	}
 }
 
 export default createPreloadingMiddleware;
