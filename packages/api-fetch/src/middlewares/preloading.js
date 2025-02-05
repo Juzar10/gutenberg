@@ -81,6 +81,7 @@ function prepareResponse( responseData, parse ) {
 			} )
 		);
 	} catch {
+		// See: https://github.com/WordPress/gutenberg/issues/67358#issuecomment-2621163926.
 		Object.entries( responseData.headers ).forEach( ( [ key, value ] ) => {
 			if ( key.toLowerCase() === 'link' ) {
 				responseData.headers[ key ] = value.replace(
